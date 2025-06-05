@@ -11,7 +11,7 @@ import {
 } from "discord.js";
 import logger from "./utils/logger";
 import { startDevPriceUpdateJob } from "./cron/priceUpdateJob";
-import { fetchTokenPrice } from "./utils/coinGecko";
+import { fetchTokenPrice, formatNumber } from "./utils/coinGecko";
 import { UNISWAP_LINK } from "./utils/constants";
 
 const token: string | undefined = process.env.DISCORD_TOKEN;
@@ -115,8 +115,9 @@ async function handleInteractionCommands(
   }
   else if (commandName === "mcap") {
     const tokenData = await fetchTokenPrice("scout-protocol-token");
-    if (tokenData) {
-      const replyMessage = `**DEV Token Market Cap:** $${tokenData.usd_market_cap?.toFixed(2)}`;
+    if (tokenData && typeof tokenData.usd_market_cap === 'number') {
+      const formattedMarketCap = formatNumber(tokenData.usd_market_cap);
+      const replyMessage = `**DEV Token Market Cap:** $${formattedMarketCap}`;
       await interaction.reply(replyMessage);
     } else {
       await interaction.reply("Sorry, I couldn't fetch the market cap right now. Please try again later.");
