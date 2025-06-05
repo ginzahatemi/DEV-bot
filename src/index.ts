@@ -54,6 +54,14 @@ const commandsData: ApplicationCommandDataResolvable[] = [
     .setName("volume")
     .setDescription("Returns the 24h volume of the token.")
     .toJSON(),
+  new SlashCommandBuilder()
+    .setName("total-price")
+    .setDescription("Calculates the USD price for a given amount of DEV tokens.")
+    .addNumberOption(option =>
+      option.setName("amount")
+        .setDescription("The amount of DEV tokens")
+        .setRequired(true))
+    .toJSON(),
 ];
 
 async function createDiscordServer(): Promise<Client> {
@@ -121,6 +129,20 @@ async function handleInteractionCommands(
       await interaction.reply(replyMessage);
     } else {
       await interaction.reply("Sorry, I couldn't fetch the market cap right now. Please try again later.");
+    }
+    
+  }
+  else if (commandName === "total-price") {
+    const amount = interaction.options.getNumber("amount", true); // `true` makes it required
+    const tokenData = await fetchTokenPrice("scout-protocol-token");
+
+    if (tokenData) {
+      const totalUsdPrice = amount * tokenData.usd;
+      const roundedUpPrice = Math.round(totalUsdPrice * 1000) / 1000;
+      const replyMessage = `**${amount} DEV tokens are currently worth:** $${roundedUpPrice.toFixed(3)}`;
+      await interaction.reply(replyMessage);
+    } else {
+      await interaction.reply("Sorry, I couldn't fetch the token price right now. Please try again later.");
     }
   }
 }
